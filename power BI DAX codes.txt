@@ -1,0 +1,148 @@
+Imporatant DAX functions
+ 
+TOTAL SALES= SUM(SALES[QUANTITY]) >>> GIVES THE SUM OF TOTAL VALUE
+
+CALCULATE= CALCULATE([TOTAL SALES],CUSTOMER[OCCUPATION]="PROFESSIONAL") 
+>>GIVES THE TOTAL SALES OF PROFESSIONAL It gives filter and perfomance wise best
+
+Filter=CALCULATE([TOTAL SALES],filter(CUSTOMER,CUSTOMER[OCCUPATION]="PROFESSIONAL")) 
+>> gives the more performance
+
+Vales=CALCULATE([TOTAL SALES],filter(values(CUSTOMER[OCCUPATION],CUSTOMER[OCCUPATION]="PROFESSIONAL"))) 
+>>more effective all 3 gives same answer but this is more effective and performance
+
+ALL= CALCULATE([TOTAL SALES],ALL(CUSTOMER))
+>>it gives total sales by ignore filter values and gives only total customer sales only
+
+ALLSELECTED=CALCULATE([TOTAL SALES],ALLSELECTED(CUSTOMER))
+>> it gives total sales by ignore all filter values and filters only  customer table only
+ 
+ALLEXCEPT= CALCULATE([TOTAL SALES],ALLEXCEPT(CUSTOMER[city]))
+>> it gives total sales by ignore all filter values and filters EXCEPT  customer city table only
+
+
+countrows=countrows(sales)
+>>gives the no of rows in a table
+
+count=count(sales[date])
+>>give the no of values in a cloumn by negelting blank values
+
+countx=countx(sales,[total sales])
+>>gives the no of values which result from evaluating an expression for each row of the table
+
+selectedvalue=CALCULATE([TOTAL SALES],CUSTOMER[city]=selectedvalue(CUSTOMER[city],"hyderabad"))
+>> it gives total sales but by defult without selecting it give hyderabd sales.
+
+SUMMARIZE (<table>, <groupBy_columnName>[, <groupBy_columnName>]…[, <name>, <expression>]…)
+summarize=summarize(sales,sales[product id],"total sales",[total sales])
+>>it retuns a table, when we need to see grouping data it is used
+
+ROW= Row("totalsales",[total sales])
+>> it gives the new table and gives single column and single row.
+
+Related=related(coloumn name)
+>>it works only many side only i.e fact table it is used to get the coloumn from another
+table i.e having active connection
+
+RelatedTabel=sumx(RelatedTabel(sales),[total sales])
+>>it works only one side only i.e dim table it is used to get the coloumn from another
+table i.e having active connection
+
+Dynamic DATE table
+
+Dyanamic Calender = 
+var a =CALENDAR(date(2018,01,01),date(year(TODAY()),month(today()),day(today())))
+return
+GENERATE(a,
+var b = [date]
+var c = year([date])
+var d = month([date])
+var e = day([date])
+return
+Row("year",c,"month no",d,"day",e))
+
+except = EXCEPT('lefttable','righttable') it is used to remove duplicated values.
+
+userelationship=calculte([totalsales],userelationship(calender[date],orderdate[shipdate])
+>>it is gives the shipdate sales for inactive relation in data model view.
+
+Calculate table=sales using CT = SUMX(CALCULATETABLE('orders$',FILTER('orders$','orders$'[Country]="France")),[ALLSALES])
+>> this is function is used for table and filter only it cant used expresion,i.e we need to use sumx function
+
+country sales = CALCULATE([ALLSALES],FILTER('orders$','orders$'[Country]="France"))
+>> in calculate function it have expression and filter.
+
+top 5 country sales = CALCULATE([ALLSALES],FILTER(VALUES('orders$'[Country]),RANKX(ALL('orders$'[Country]),[ALLSALES])<=5))
+
+search= calculate(count(coloumn name),search("searching text",coloumn name,1,0))
+>> it give the count of searching text
+
+net working days = NETWORKDAYS(SELECTEDVALUE('orders$'[Order Date]),SELECTEDVALUE('orders$'[Ship Date]))
+>> networkdays gives the bussiness days i.e working days between two dates.
+
+running 12 avg sales = CALCULATE(AVERAGE('orders$'[total sales]),DATESINPERIOD(CALENDER[Date],MAX(CALENDER[Date]),-12,MONTH))
+>> it gives the running 12 months avg sales.
+
+top sales = SWITCH(SELECTEDVALUE('Table'[Value]),IF([countery rank]<=2,"Top 2"),[ALLSALES],
+IF([countery rank]<=3,"Top 3"),[ALLSALES],IF([countery rank]<=5,"Top 5"),[ALLSALES])
+
+>> it gives the dynicai function for slicer and gives top2 ,3,5 sales by using rankx function.
+
+cummulative sale/running total= CALCULATE([ALLSALES],ALL(CALENDER),CALENDER[Date]<=MAX(CALENDER[Date]))
+>> it gives the cummulative sales here we need to use all function because it helps remove any filter that appiled in visuval.
+
+totalytd = TOTALYTD([ALLSALES],CALENDER[Date])
+>> it gives the year to date sales of the latest year.
+Similarly Datesytd also give same but we need to use calculate function because datesytd dont have expression
+>>datesytd = CALCULATE([ALLSALES],DATESYTD(CALENDER[Date]))
+
+Treatas>> this function is used when two tables not connected directly then by using this function we can get the results.
+
+coalesce>> this function is used to count the non-NULL value from a series of expressions.
+
+total ytd DQ = CALCULATE([ALLSALES],FILTER(CALENDER,CALENDER[YEAR]=MAX(CALENDER[YEAR]) && CALENDER[Date]<=CALENDER[Date]))
+it gives the better performance in direct query for totalytd.
+
+total Mtd DQ = CALCULATE([ALLSALES],FILTER(CALENDER,CALENDER[YEAR]=MAX(CALENDER[YEAR])&& 
+		CALENDER[month]=MAX(CALENDER[month]) && CALENDER[Date]<=CALENDER[Date]))
+	
+total Qtd DQ = CALCULATE([ALLSALES],FILTER(CALENDER,CALENDER[YEAR]=MAX(CALENDER[YEAR])&& 
+		CALENDER[QUARTER]=MAX(CALENDER[QUARTER]) && CALENDER[Date]<=CALENDER[Date]))
+
+waterfall chart >> it can be used in total profit by year and category name. 
+		we can easily check which product gives profit/loss by year.
+
+Tree Chart >> it can be used when correlation between color and size easy to spot.
+
+scatter plot >> used to show the relationship between 2 sets of data.
+line chart >> it is used to show trend and forecast.
+Funnel chart >> helps to visval a linear process that has sequential connected stages.
+Gauge chart >> it is used to show progress to a particula goal.
+
+DateADD = CALCULATE([ALLSALES],DATEADD(CALENDER[Date],-1,YEAR))
+>> it gives the all sales for previous years. it having year,month,qaurter,day intervals.
+
+parallel period = CALCULATE([ALLSALES],PARALLELPERIOD(CALENDER[Date],-1,YEAR))
+>> it gives the sum of all sales for previous years. it having year,month,qaurter intervals.
+
+max value = 
+var max_data_point= MAXX(ALL(daxfunctions),[ALLSALES])
+var check_min =IF(max_data_point=[ALLSALES],max_data_point,BLANK())
+RETURN check_min
+
+>> in line chart it shows the max data point.
+
+format>> format(coloum,switch(expresion,decimal,"00,000",percentage,"00.0%"))
+
+>>if we have maultiple data types in one cloumn it need to show different number and percentage differnt then we can used this function
+format and switch dax functions.
+
+team count = CALCULATE(COUNT('sample team'[team]),ALLEXCEPT('sample team','sample team'[team]))
+>> it gives the count of values in row wise for selected product.
+
+team data avg = CALCULATE(AVERAGE('sample team'[data]),ALL('sample team'))
+>> it gives the same avg values in all rows.
+
+final team avg = IF(HASONEVALUE('sample team'[data]),[team data avg],SUMX('sample team',[team data avg]))
+>>it gives the same avg values in all rows and gives the sum of all avg values.
+
